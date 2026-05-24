@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -7,7 +6,6 @@
     <title>Manager Dashboard – AnoReward</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        /* Font & variabel warna utama */
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
         :root {
@@ -19,7 +17,6 @@
 
         * { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-        /* Tombol utama marun */
         .btn-maroon {
             background-color: var(--maroon);
             color: #fff;
@@ -28,15 +25,28 @@
         .btn-maroon:hover  { background-color: var(--maroon-dark); }
         .btn-maroon:active { transform: scale(.97); }
 
-        /* Border aksen marun */
-        .border-maroon  { border-color: var(--maroon); }
-        .ring-maroon:focus { outline: none; box-shadow: 0 0 0 3px rgba(120,0,0,.25); }
-
-        /* Badge status */
         .badge-done     { background:#fef9c3; color:#854d0e; }
         .badge-approved { background:#dcfce7; color:#166534; }
 
-        /* Modal backdrop */
+        /* Kelas helper untuk state error pada input */
+        .input-base {
+            width: 100%;
+            border-radius: 0.75rem;
+            border-width: 1px;
+            border-style: solid;
+            border-color: #e5e7eb; /* gray-200 default */
+            padding: 0.625rem 1rem;
+            font-size: 0.875rem;
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .input-base:focus {
+            outline: none;
+            border-color: #780000;
+            box-shadow: 0 0 0 3px rgba(120,0,0,.15);
+        }
+        .input-base::placeholder { color: #9ca3af; }
+        .input-error { border-color: #f87171 !important; background-color: #fff1f2; }
+
         .modal-backdrop {
             display: none;
             position: fixed; inset: 0;
@@ -57,7 +67,6 @@
 <nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
 
-        {{-- Logo --}}
         <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg flex items-center justify-center"
                  style="background-color:var(--maroon)">
@@ -79,7 +88,6 @@
             <span class="hidden sm:inline text-sm font-medium text-gray-500">Project Manager</span>
         </div>
 
-        {{-- User info + logout --}}
         <div class="flex items-center gap-4">
             <div class="text-right hidden sm:block">
                 <p class="text-sm font-semibold text-gray-700">{{ Auth::user()->name }}</p>
@@ -101,13 +109,11 @@
 ════════════════════════════════════════════════════ --}}
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
 
-    {{-- ── Judul halaman ── --}}
     <div>
         <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900">Selamat datang, {{ Auth::user()->name }} 👋</h1>
         <p class="mt-1 text-gray-500 text-sm">Kelola proyek, tetapkan tugas, dan nilai kinerja tim developer Anda.</p>
     </div>
 
-    {{-- ── Flash message ── --}}
     @if (session('success'))
     <div class="flex items-center gap-3 rounded-xl border px-5 py-4 text-sm font-medium"
          style="background:var(--maroon-faint); border-color:var(--maroon); color:var(--maroon-dark)">
@@ -120,7 +126,7 @@
 
     @if ($errors->any())
     <div class="rounded-xl border border-red-300 bg-red-50 px-5 py-4 text-sm text-red-700 space-y-1">
-        <p class="font-semibold">Terdapat kesalahan pada form dengan eror berikut:</p>
+        <p class="font-semibold">Terdapat kesalahan pada form:</p>
         <ul class="list-disc list-inside space-y-0.5">
             @foreach ($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -134,7 +140,6 @@
     ═════════════════════════════════════════════════ --}}
     <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
-        {{-- Header section --}}
         <div class="px-6 py-5 border-b border-gray-100 flex items-center gap-3"
              style="background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-light) 100%)">
             <div class="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
@@ -148,7 +153,6 @@
             </div>
         </div>
 
-        {{-- Form body --}}
         <div class="p-6">
             <form method="POST" action="{{ route('manager.project.store') }}">
                 @csrf
@@ -160,16 +164,14 @@
                         <label for="project_name" class="block text-sm font-semibold text-gray-700 mb-1.5">
                             Nama Proyek <span class="text-red-500">*</span>
                         </label>
+                        {{-- Gunakan class CSS murni, bukan Blade conditional di class --}}
                         <input
                             type="text"
                             id="project_name"
                             name="project_name"
                             value="{{ old('project_name') }}"
                             placeholder="cth: Pengembangan Fitur Notifikasi Real-time"
-                            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm
-                                   focus:border-[#780000] focus:ring-2 focus:ring-[#780000]/20
-                                   placeholder-gray-400 transition ring-maroon
-                                   @error('project_name') border-red-400 bg-red-50 @enderror" />
+                            class="input-base {{ $errors->has('project_name') ? 'input-error' : '' }}" />
                         @error('project_name')
                             <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                         @enderror
@@ -186,10 +188,7 @@
                             name="task_name"
                             value="{{ old('task_name') }}"
                             placeholder="cth: Implementasi WebSocket pada endpoint /notifications"
-                            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm
-                                   focus:border-[#780000] focus:ring-2 focus:ring-[#780000]/20
-                                   placeholder-gray-400 transition
-                                   @error('task_name') border-red-400 bg-red-50 @enderror" />
+                            class="input-base {{ $errors->has('task_name') ? 'input-error' : '' }}" />
                         @error('task_name')
                             <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                         @enderror
@@ -203,10 +202,7 @@
                         <select
                             id="developer_id"
                             name="developer_id"
-                            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm
-                                   focus:border-[#780000] focus:ring-2 focus:ring-[#780000]/20
-                                   bg-white transition
-                                   @error('developer_id') border-red-400 bg-red-50 @enderror">
+                            class="input-base {{ $errors->has('developer_id') ? 'input-error' : '' }}">
                             <option value="" disabled selected>— Pilih Developer —</option>
                             @forelse ($developers as $dev)
                                 <option value="{{ $dev->id }}" {{ old('developer_id') == $dev->id ? 'selected' : '' }}>
@@ -231,10 +227,7 @@
                             id="due_date"
                             name="due_date"
                             value="{{ old('due_date') }}"
-                            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm
-                                   focus:border-[#780000] focus:ring-2 focus:ring-[#780000]/20
-                                   transition
-                                   @error('due_date') border-red-400 bg-red-50 @enderror" />
+                            class="input-base {{ $errors->has('due_date') ? 'input-error' : '' }}" />
                         @error('due_date')
                             <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                         @enderror
@@ -248,10 +241,7 @@
                         <select
                             id="difficulty"
                             name="difficulty"
-                            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm
-                                   focus:border-[#780000] focus:ring-2 focus:ring-[#780000]/20
-                                   bg-white transition
-                                   @error('difficulty') border-red-400 bg-red-50 @enderror">
+                            class="input-base {{ $errors->has('difficulty') ? 'input-error' : '' }}">
                             <option value="" disabled selected>— Pilih Tingkat Kesulitan —</option>
                             <option value="Low"    {{ old('difficulty') === 'Low'    ? 'selected' : '' }}>🟢 Low</option>
                             <option value="Medium" {{ old('difficulty') === 'Medium' ? 'selected' : '' }}>🟡 Medium</option>
@@ -262,9 +252,8 @@
                         @enderror
                     </div>
 
-                </div>{{-- end grid --}}
+                </div>
 
-                {{-- Submit --}}
                 <div class="mt-6 flex justify-end">
                     <button type="submit"
                             class="btn-maroon inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold shadow-sm">
@@ -285,7 +274,6 @@
     ═════════════════════════════════════════════════ --}}
     <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
-        {{-- Header section --}}
         <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-lg flex items-center justify-center"
@@ -307,7 +295,6 @@
             </span>
         </div>
 
-        {{-- Tabel --}}
         <div class="overflow-x-auto">
             @if ($doneTasks->isEmpty())
                 <div class="flex flex-col items-center justify-center py-16 text-center text-gray-400">
@@ -335,7 +322,6 @@
                         @foreach ($doneTasks as $task)
                         <tr class="hover:bg-gray-50 transition-colors">
 
-                            {{-- Nama Tugas --}}
                             <td class="px-6 py-4 font-medium text-gray-800 max-w-[200px]">
                                 <p class="truncate" title="{{ $task->task_name }}">{{ $task->task_name }}</p>
                                 @if ($task->description)
@@ -345,12 +331,10 @@
                                 @endif
                             </td>
 
-                            {{-- Proyek --}}
                             <td class="px-6 py-4 text-gray-600">
                                 {{ $task->project->project_name ?? '—' }}
                             </td>
 
-                            {{-- Developer --}}
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
                                     <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold"
@@ -361,7 +345,6 @@
                                 </div>
                             </td>
 
-                            {{-- Deadline --}}
                             <td class="px-6 py-4 text-gray-600">
                                 @if ($task->due_date)
                                     <span class="{{ \Carbon\Carbon::today()->gt($task->due_date) ? 'text-red-600 font-semibold' : '' }}">
@@ -377,19 +360,24 @@
                                 @endif
                             </td>
 
-                            {{-- Status --}}
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold badge-done">
                                     Done
                                 </span>
                             </td>
 
-                            {{-- Aksi: tombol buka modal --}}
+                            {{--
+                                FIX onclick: gunakan data-* attributes, bukan inline Blade di dalam onclick.
+                                JS membaca data-task-id, data-task-name, data-dev-name saat tombol diklik.
+                                Ini menghilangkan error "Property assignment expected" dari VS Code linter.
+                            --}}
                             <td class="px-6 py-4 text-center">
                                 <button
                                     type="button"
-                                    onclick="openModal({{ $task->id }}, '{{ addslashes($task->task_name) }}', '{{ $task->developer->name ?? 'N/A' }}')"
-                                    class="btn-maroon inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold shadow-sm">
+                                    data-task-id="{{ $task->id }}"
+                                    data-task-name="{{ $task->task_name }}"
+                                    data-dev-name="{{ $task->developer->name ?? 'N/A' }}"
+                                    class="btn-nilai btn-maroon inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold shadow-sm">
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
                                     </svg>
@@ -405,23 +393,22 @@
         </div>
     </section>
 
-</main>{{-- end main --}}
+</main>
 
 
 {{-- ═══════════════════════════════════════════════════
-     MODAL POP-UP — FORM PENILAIAN TUGAS
+     MODAL — FORM PENILAIAN TUGAS
 ════════════════════════════════════════════════════ --}}
 <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
 
-        {{-- Modal header --}}
         <div class="px-6 py-5 flex items-center justify-between"
              style="background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-light) 100%)">
             <div>
                 <h3 id="modalTitle" class="text-base font-bold text-white">Beri Nilai Tugas</h3>
                 <p id="modalSubtitle" class="text-xs text-red-200 mt-0.5">—</p>
             </div>
-            <button onclick="closeModal()"
+            <button id="btnCloseModal"
                     class="text-white/70 hover:text-white transition-colors rounded-lg p-1 hover:bg-white/10">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -429,21 +416,17 @@
             </button>
         </div>
 
-        {{-- Modal body --}}
         <form id="approveForm" method="POST" action="">
             @csrf
-            @method('POST')
 
             <div class="px-6 py-6 space-y-5">
 
-                {{-- Info task --}}
                 <div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm">
                     <p class="text-gray-500 text-xs mb-1 font-medium uppercase tracking-wide">Tugas yang Dinilai</p>
                     <p id="modalTaskName" class="font-semibold text-gray-800">—</p>
                     <p id="modalDevName"  class="text-gray-500 text-xs mt-0.5">Developer: —</p>
                 </div>
 
-                {{-- Input nilai kualitas --}}
                 <div>
                     <label for="pm_rating" class="block text-sm font-semibold text-gray-700 mb-1.5">
                         Nilai Kualitas (1–100) <span class="text-red-500">*</span>
@@ -455,15 +438,12 @@
                         min="1"
                         max="100"
                         placeholder="Masukkan nilai antara 1 hingga 100"
-                        class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm
-                               focus:border-[#780000] focus:ring-2 focus:ring-[#780000]/20
-                               placeholder-gray-400 transition" />
+                        class="input-base" />
                     <p class="text-xs text-gray-400 mt-1.5">
                         Nilai ini akan dibobot <strong>60%</strong>. Sisanya <strong>40%</strong> dihitung otomatis dari ketepatan waktu.
                     </p>
                 </div>
 
-                {{-- Rumus preview (informatif) --}}
                 <div class="rounded-xl border px-4 py-3 text-xs text-gray-500 space-y-1"
                      style="border-color:rgba(120,0,0,.2); background:var(--maroon-faint)">
                     <p class="font-semibold" style="color:var(--maroon)">Rumus Perhitungan Skor Akhir</p>
@@ -473,9 +453,8 @@
 
             </div>
 
-            {{-- Modal footer --}}
             <div class="px-6 pb-6 flex gap-3 justify-end">
-                <button type="button" onclick="closeModal()"
+                <button type="button" id="btnCancelModal"
                         class="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-semibold
                                text-gray-600 hover:bg-gray-100 transition">
                     Batal
@@ -491,11 +470,11 @@
 
         </form>
     </div>
-</div>{{-- end modal --}}
+</div>
 
 
 {{-- ═══════════════════════════════════════════════════
-     JAVASCRIPT — Modal logic
+     JAVASCRIPT
 ════════════════════════════════════════════════════ --}}
 <script>
     const backdrop    = document.getElementById('modalBackdrop');
@@ -505,58 +484,52 @@
     const modalSub    = document.getElementById('modalSubtitle');
     const ratingInput = document.getElementById('pm_rating');
 
-    /**
-     * Buka modal dan isi informasi tugas yang dipilih.
-     * @param {number} taskId      - ID tugas
-     * @param {string} taskName    - Nama tugas
-     * @param {string} devName     - Nama developer
-     */
-    function openModal(taskId, taskName, devName) {
-        // Susun action URL: /manager/task/{id}/approve
-        approveForm.action = `/manager/task/${taskId}/approve`;
+    // ── Buka modal via data-* attributes (tidak ada Blade/JSON di onclick) ──
+    document.querySelectorAll('.btn-nilai').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var taskId   = this.getAttribute('data-task-id');
+            var taskName = this.getAttribute('data-task-name');
+            var devName  = this.getAttribute('data-dev-name');
 
-        // Isi konten informatif di modal
-        modalTask.textContent = taskName;
-        modalDev.textContent  = 'Developer: ' + devName;
-        modalSub.textContent  = 'ID Tugas #' + taskId;
+            approveForm.action    = '/manager/task/' + taskId + '/approve';
+            modalTask.textContent = taskName;
+            modalDev.textContent  = 'Developer: ' + devName;
+            modalSub.textContent  = 'ID Tugas #' + taskId;
+            ratingInput.value     = '';
 
-        // Reset input nilai setiap buka modal
-        ratingInput.value = '';
+            backdrop.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            setTimeout(function () { ratingInput.focus(); }, 100);
+        });
+    });
 
-        // Tampilkan backdrop
-        backdrop.classList.add('open');
-        document.body.style.overflow = 'hidden';
-
-        // Fokus ke input agar langsung bisa mengetik
-        setTimeout(() => ratingInput.focus(), 100);
-    }
-
-    /** Tutup modal */
+    // ── Tutup modal ──
     function closeModal() {
         backdrop.classList.remove('open');
         document.body.style.overflow = '';
     }
 
-    // Tutup modal jika klik di luar card modal
+    document.getElementById('btnCloseModal').addEventListener('click', closeModal);
+    document.getElementById('btnCancelModal').addEventListener('click', closeModal);
+
     backdrop.addEventListener('click', function (e) {
         if (e.target === backdrop) closeModal();
     });
 
-    // Tutup modal dengan tombol Escape
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') closeModal();
     });
 
-    // Validasi nilai sebelum submit modal
+    // ── Validasi sebelum submit ──
     approveForm.addEventListener('submit', function (e) {
-        const val = parseInt(ratingInput.value, 10);
+        var val = parseInt(ratingInput.value, 10);
         if (!val || val < 1 || val > 100) {
             e.preventDefault();
-            ratingInput.classList.add('border-red-400', 'bg-red-50');
+            ratingInput.classList.add('input-error');
             ratingInput.focus();
             return;
         }
-        ratingInput.classList.remove('border-red-400', 'bg-red-50');
+        ratingInput.classList.remove('input-error');
     });
 </script>
 

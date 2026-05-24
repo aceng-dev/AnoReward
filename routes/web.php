@@ -3,6 +3,10 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectManagerController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\RewardController;
+use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\StatisticsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -12,22 +16,68 @@ Route::get('/', function () {
 // Grup Rute yang Harus Login Terlebih Dahulu
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // 1. Rute Khusus Admin
+    // ========== LEADERBOARD (Accessible by all authenticated users) ==========
+    Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
+    Route::get('/leaderboard/developer/{developer}', [LeaderboardController::class, 'show'])->name('leaderboard.show');
+    Route::get('/leaderboard/statistics', [LeaderboardController::class, 'statistics'])->name('leaderboard.statistics');
+    Route::get('/api/leaderboard', [LeaderboardController::class, 'api'])->name('api.leaderboard');
+
+    // ========== ADMIN ROUTES ==========
     Route::middleware(['role:admin'])->group(function () {
         Route::get('/admin/dashboard', [DashboardController::class, 'admin'])->name('admin.dashboard');
+        Route::get('/admin/statistics', [StatisticsController::class, 'adminStats'])->name('admin.statistics');
+        Route::get('/admin/rewards', [RewardController::class, 'index'])->name('admin.rewards.index');
+        Route::get('/admin/rewards/{reward}', [RewardController::class, 'show'])->name('admin.rewards.show');
+        Route::post('/admin/rewards/{reward}/approve', [RewardController::class, 'approve'])->name('admin.rewards.approve');
+        Route::post('/admin/rewards/{reward}/reject', [RewardController::class, 'reject'])->name('admin.rewards.reject');
+        Route::get('/admin/rewards/statistics', [RewardController::class, 'statistics'])->name('admin.rewards.statistics');
     });
 
-    // 2. Rute Khusus Manager
+    // ========== MANAGER ROUTES ==========
     Route::middleware(['role:manager'])->group(function () {
-        Route::get('/manager/dashboard',         [ProjectManagerController::class, 'index'])->name('manager.dashboard');
-        Route::post('/manager/project/store',    [ProjectManagerController::class, 'storeProject'])->name('manager.project.store');
-        Route::post('/manager/task/{id}/approve',[ProjectManagerController::class, 'approveTask'])->name('manager.task.approve');
+        Route::get('/manager/dashboard',          [ProjectManagerController::class, 'index'])->name('manager.dashboard');
+        Route::post('/manager/project/store',     [ProjectManagerController::class, 'storeProject'])->name('manager.project.store');
+        Route::post('/manager/task/{id}/approve', [ProjectManagerController::class, 'approveTask'])->name('manager.task.approve');
+        Route::get('/manager/statistics',         [StatisticsController::class, 'managerStats'])->name('manager.statistics');
+        Route::get('/manager/tasks',              [TaskController::class, 'index'])->name('manager.tasks.index');
+        Route::get('/manager/rewards',            [RewardController::class, 'index'])->name('manager.rewards.index');
+        Route::get('/manager/rewards/create',     [RewardController::class, 'create'])->name('manager.rewards.create');
+        Route::post('/manager/rewards',           [RewardController::class, 'store'])->name('manager.rewards.store');
+        Route::get('/manager/rewards/{reward}',   [RewardController::class, 'show'])->name('manager.rewards.show');
+        Route::get('/manager/rewards/statistics', [RewardController::class, 'statistics'])->name('manager.rewards.statistics');
     });
 
-    // 3. Rute Khusus Developer
+    // ========== DEVELOPER ROUTES ==========
     Route::middleware(['role:developer'])->group(function () {
         Route::get('/developer/dashboard', [DashboardController::class, 'developer'])->name('developer.dashboard');
+        Route::get('/developer/statistics', [StatisticsController::class, 'developerStats'])->name('developer.statistics');
+        Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+        Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
+        Route::post('/tasks/{task}/start', [TaskController::class, 'start'])->name('tasks.start');
+        Route::post('/tasks/{task}/complete', [TaskController::class, 'complete'])->name('tasks.complete');
+        Route::post('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
+        Route::get('/developer/rewards', [RewardController::class, 'index'])->name('developer.rewards.index');
+        Route::get('/developer/rewards/{reward}', [RewardController::class, 'show'])->name('developer.rewards.show');
     });
+
+    // Generic dashboard route — redirect sesuai role ke dashboard masing-masing
+    Route::get('/dashboard', function () {
+        $user = auth()->user();
+        if (!$user) return redirect('/');
+
+        if (method_exists($user, 'hasRole')) {
+            if ($user->hasRole('admin'))     return redirect()->route('admin.dashboard');
+            if ($user->hasRole('manager'))   return redirect()->route('manager.dashboard');
+            if ($user->hasRole('developer')) return redirect()->route('developer.dashboard');
+        } else {
+            $role = $user->role ?? null;
+            if ($role === 'admin')     return redirect()->route('admin.dashboard');
+            if ($role === 'manager')   return redirect()->route('manager.dashboard');
+            if ($role === 'developer') return redirect()->route('developer.dashboard');
+        }
+
+        return redirect('/');
+    })->name('dashboard');
 
 });
 

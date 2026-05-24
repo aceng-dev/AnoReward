@@ -25,9 +25,20 @@ class Task extends Model
 
     // Cast tipe data agar otomatis menjadi objek Carbon (mudah menghitung selisih tanggal)
     protected $casts = [
-        'due_date' => 'date',
+        'due_date'     => 'date',
         'completed_at' => 'datetime',
     ];
+
+    // Aliasing untuk kompatibilitas view/controller lama
+    public function getDeadlineAttribute()
+    {
+        return $this->due_date;
+    }
+
+    public function getTitleAttribute()
+    {
+        return $this->task_name;
+    }
 
     // Relasi: Task ini bagian dari sebuah Project
     public function project()
@@ -40,4 +51,7 @@ class Task extends Model
     {
         return $this->belongsTo(User::class, 'developer_id');
     }
+
+    // Relasi: Riwayat perubahan status task (dipakai TaskController saat start/complete)
+   
 }
