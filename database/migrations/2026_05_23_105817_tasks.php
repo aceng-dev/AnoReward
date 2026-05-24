@@ -12,17 +12,21 @@ return new class extends Migration
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
             
-            $table->foreignId('developer_id')->constrained('users')->onDelete('set null');
+            // Perbaikan: Ditambahkan ->nullable() agar sinkron dengan onDelete('set null')
+            $table->foreignId('developer_id')->nullable()->constrained('users')->onDelete('set null');
+            
+            // Kolom ini aman: Jika project dihapus, task otomatis ikut terhapus (cascade)
             $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
+            
             $table->string('task_name');
-            $table->enum('status',['todo', 'inprogress','done' ,'approved'])->default('todo');
+            $table->enum('status', ['todo', 'inprogress', 'done', 'approved'])->default('todo');
             $table->text('description')->nullable();
             $table->date('due_date')->nullable();
             $table->dateTime('completed_at')->nullable();
             $table->integer('pm_rating')->default(0);
             $table->integer('calculated_score')->default(0);
-            $table->text('ai_review')->nullable();            // ini nanti jo saya rencana mo tambah Ai tapi tunggu fitur Mvp jadi
-            $table->integer('ai_suggested_rating')->nullable();  // ini nanti jo saya rencana mo tambah Ai tapi tunggu fitur Mvp jadi
+            $table->text('ai_review')->nullable();            
+            $table->integer('ai_suggested_rating')->nullable();  
             $table->timestamps();
         });
     }
@@ -30,6 +34,6 @@ return new class extends Migration
     
     public function down(): void
     {
-        
+        Schema::dropIfExists('tasks');
     }
 };
