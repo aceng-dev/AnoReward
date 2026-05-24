@@ -192,9 +192,9 @@ function formatDate($date) {
                                                     </span>
                                                     <span class="text-xs text-gray-500 bg-white bg-opacity-70 px-2 py-1 rounded">{{ $task->project->project_name ?? 'Tanpa Project' }}</span>
                                                     @if($urgency === 'critical')
-                                                        <span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">?? Segera</span>
+                                                        <span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">Segera</span>
                                                     @elseif($urgency === 'overdue')
-                                                        <span class="text-xs font-bold text-white bg-red-600 px-2 py-1 rounded">?? Terlambat</span>
+                                                        <span class="text-xs font-bold text-white bg-red-600 px-2 py-1 rounded">Terlambat</span>
                                                     @endif
                                                 </div>
                                                 <h3 class="text-xl font-semibold text-gray-900">{{ $task->title }}</h3>
@@ -236,7 +236,7 @@ function formatDate($date) {
 
             <div class="space-y-5">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">? Baru Selesai</h3>
+                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">Baru Selesai</h3>
                     <div class="space-y-3">
                         @forelse($completedTasks->take(5) as $task)
                             <div class="rounded-xl border border-gray-200 p-4 hover:bg-gray-50 transition">
@@ -258,13 +258,13 @@ function formatDate($date) {
                 </div>
 
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">?? Top Developer</h3>
+                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">Top Developer</h3>
                     <div class="space-y-2">
                         @foreach($leaderboard as $userRow)
                             <div class="leaderboard-item flex items-center justify-between p-3 rounded-lg border {{ $userRow->id === $developer->id ? 'border-blue-200 bg-blue-50' : 'border-gray-100 hover:bg-gray-50' }}">
                                 <div class="flex items-center gap-3">
                                     <div class="text-sm font-bold w-7 text-center">
-                                        @if($userRow->rank === 1) ?? @elseif($userRow->rank === 2) ?? @elseif($userRow->rank === 3) ?? @else #{{ $userRow->rank }} @endif
+                                        @if($userRow->rank === 1) 🥇 @elseif($userRow->rank === 2) 🥈 @elseif($userRow->rank === 3) 🥉 @else #{{ $userRow->rank }} @endif
                                     </div>
                                     <div>
                                         <div class="font-semibold text-gray-900 text-sm">{{ $userRow->name }}</div>
@@ -280,7 +280,7 @@ function formatDate($date) {
                 </div>
 
                 <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl shadow-sm border border-amber-200 p-5">
-                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">?? Reward</h3>
+                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">Reward</h3>
                     <div class="text-3xl font-bold text-amber-600 mb-3">{{ number_format($stats['total_points'],0,',','.') }} pts</div>
                     <a href="{{ route('developer.rewards.index') }}" class="block w-full text-center btn-primary text-white py-2 rounded-lg mb-4">Lihat Reward Saya</a>
                     <div class="text-xs font-semibold text-gray-700 mb-2">Riwayat reward terbaru</div>

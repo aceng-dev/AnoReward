@@ -188,7 +188,7 @@ class StatisticsController extends Controller
         $topProject = Task::where('developer_id', $developer->id)
             ->where('status', 'done')
             ->groupBy('project_id')
-            ->selectRaw('project_id, COUNT(*) as count, SUM(points) as total_points')
+            ->selectRaw('project_id, COUNT(*) as count, SUM(calculated_score) as total_points')
             ->orderBy('total_points', 'desc')
             ->first();
 

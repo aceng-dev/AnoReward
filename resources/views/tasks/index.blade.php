@@ -1,6 +1,25 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    .filter-pill {
+        transition: transform .2s ease, background-color .2s ease, color .2s ease, box-shadow .2s ease;
+    }
+    .filter-pill:hover {
+        transform: translateY(-1px);
+    }
+    .filter-pill:active {
+        transform: translateY(1px);
+        box-shadow: inset 0 4px 8px rgba(15, 23, 42, .12);
+    }
+    .filter-pill:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, .25);
+    }
+    .filter-pill.active-pill {
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+    }
+</style>
 <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         
@@ -12,16 +31,16 @@
         <!-- Filter -->
         <div class="mb-6 bg-white rounded-lg shadow p-4">
             <div class="flex flex-wrap gap-4">
-                <a href="?status=" class="px-4 py-2 rounded text-sm font-medium {{ empty(request('status')) ? 'bg-gray-300 text-gray-900' : 'bg-gray-200 text-gray-900' }} hover:bg-gray-300">
+                <a href="?status=" class="filter-pill px-4 py-2 rounded-full text-sm font-medium {{ empty(request('status')) ? 'active-pill bg-gray-300 text-gray-900 shadow-sm' : 'bg-gray-100 text-gray-700' }} hover:bg-gray-200">
                     Semua ({{ $taskCounts['all'] }})
                 </a>
-                <a href="?status=todo" class="px-4 py-2 rounded text-sm font-medium {{ request('status') === 'todo' ? 'bg-purple-200 text-purple-900' : 'bg-purple-100 text-purple-700' }} hover:bg-purple-200">
+                <a href="?status=todo" class="filter-pill px-4 py-2 rounded-full text-sm font-medium {{ request('status') === 'todo' ? 'active-pill bg-purple-200 text-purple-900 shadow-sm' : 'bg-gray-100 text-gray-700' }} hover:bg-gray-200">
                     Belum Dimulai ({{ $taskCounts['todo'] }})
                 </a>
-                <a href="?status=inprogress" class="px-4 py-2 rounded text-sm font-medium {{ request('status') === 'inprogress' ? 'bg-blue-200 text-blue-900' : 'bg-blue-100 text-blue-700' }} hover:bg-blue-200">
+                <a href="?status=inprogress" class="filter-pill px-4 py-2 rounded-full text-sm font-medium {{ request('status') === 'inprogress' ? 'active-pill bg-blue-200 text-blue-900 shadow-sm' : 'bg-gray-100 text-gray-700' }} hover:bg-gray-200">
                     Sedang Dikerjakan ({{ $taskCounts['inprogress'] }})
                 </a>
-                <a href="?status=done" class="px-4 py-2 rounded text-sm font-medium {{ request('status') === 'done' ? 'bg-green-200 text-green-900' : 'bg-green-100 text-green-700' }} hover:bg-green-200">
+                <a href="?status=done" class="filter-pill px-4 py-2 rounded-full text-sm font-medium {{ request('status') === 'done' ? 'active-pill bg-green-200 text-green-900 shadow-sm' : 'bg-gray-100 text-gray-700' }} hover:bg-gray-200">
                     Selesai ({{ $taskCounts['done'] }})
                 </a>
             </div>

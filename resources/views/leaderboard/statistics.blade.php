@@ -38,11 +38,11 @@
                 </div>
                 <div class="p-6">
                     <div class="space-y-3">
-                        @foreach($stats['top_10_developers'] as $index => $dev)
+                        @foreach($stats['top_10_developers'] as $dev)
                             <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
                                 <div class="flex items-center">
                                     <span class="text-2xl font-bold text-gray-900 w-8 text-center">
-                                        @if($index === 0) 🥇 @elseif($index === 1) 🥈 @elseif($index === 2) 🥉 @else #{{ $index + 1 }} @endif
+                                        @if($dev->rank === 1) 🥇 @elseif($dev->rank === 2) 🥈 @elseif($dev->rank === 3) 🥉 @else #{{ $dev->rank }} @endif
                                     </span>
                                     <div class="ml-4">
                                         <p class="font-medium text-gray-900">{{ $dev->name }}</p>

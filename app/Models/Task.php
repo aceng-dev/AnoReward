@@ -40,6 +40,11 @@ class Task extends Model
         return $this->task_name;
     }
 
+    public function getPointsAttribute()
+    {
+        return $this->calculated_score ?: 100;
+    }
+
     // Relasi: Task ini bagian dari sebuah Project
     public function project()
     {

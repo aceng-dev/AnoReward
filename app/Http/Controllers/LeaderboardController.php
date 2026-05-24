@@ -138,11 +138,17 @@ class LeaderboardController extends Controller
     {
         $developers = User::where('role', 'developer')->get();
 
+        $topDevelopers = $developers->sortByDesc('total_points')->values();
+        $top10 = $topDevelopers->take(10)->map(function($dev, $index) {
+            $dev->rank = $index + 1;
+            return $dev;
+        });
+
         $stats = [
             'total_developers' => $developers->count(),
             'total_points_distributed' => $developers->sum('total_points'),
             'average_points_per_developer' => $developers->avg('total_points'),
-            'top_10_developers' => $developers->sortByDesc('total_points')->take(10),
+            'top_10_developers' => $top10,
             'points_distribution' => [
                 '0-100' => $developers->filter(fn($dev) => $dev->total_points < 100)->count(),
                 '100-500' => $developers->filter(fn($dev) => $dev->total_points >= 100 && $dev->total_points < 500)->count(),

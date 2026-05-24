@@ -65,6 +65,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/tasks/{task}/complete', [TaskController::class, 'complete'])->name('tasks.complete');
         Route::post('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
         
+        // Profile
+        Route::get('/developer/profile', [ProfileController::class, 'edit'])->name('developer.profile');
+
         // Rewards (view only)
         Route::get('/developer/rewards', [RewardController::class, 'index'])->name('developer.rewards.index');
         Route::get('/developer/rewards/{reward}', [RewardController::class, 'show'])->name('developer.rewards.show');
