@@ -29,6 +29,17 @@ class Task extends Model
         'completed_at' => 'datetime',
     ];
 
+    // Aliasing untuk kompatibilitas view/controller lama
+    public function getDeadlineAttribute()
+    {
+        return $this->due_date;
+    }
+
+    public function getTitleAttribute()
+    {
+        return $this->task_name;
+    }
+
     // Relasi: Task ini bagian dari sebuah Project
     public function project()
     {
