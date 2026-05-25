@@ -19,8 +19,10 @@ class Task extends Model
         'completed_at',
         'pm_rating',
         'calculated_score',
-        'ai_review',            // ini nanti jo saya rencana mo tambah Ai tapi tunggu fitur Mvp jadi
-        'ai_suggested_rating',  // ini nanti jo saya rencana mo tambah Ai tapi tunggu fitur Mvp jadi
+        'repo_link',
+        'difficulty',
+        'ai_review',
+        'ai_suggested_rating',
     ];
 
     // Cast tipe data agar otomatis menjadi objek Carbon (mudah menghitung selisih tanggal)

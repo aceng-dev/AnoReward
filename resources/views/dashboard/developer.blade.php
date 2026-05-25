@@ -216,10 +216,11 @@ function formatDate($date) {
                                                     <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg btn-primary text-white text-sm font-medium">Mulai Mengerjakan</button>
                                                 </form>
                                             @elseif($task->status === 'inprogress')
-                                                <form action="{{ route('tasks.complete', $task) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700">Tandai Selesai</button>
-                                                </form>
+                                                <button type="button"
+                                                    onclick="openCompleteModal({{ $task->id }}, '{{ addslashes($task->task_name) }}')"
+                                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700">
+                                                    Tandai Selesai
+                                                </button>
                                             @endif
                                         </div>
                                     </div>
@@ -303,4 +304,57 @@ function formatDate($date) {
     </div>
 </div>
 
+
 @endsection
+
+@push('scripts')
+<script>
+function openCompleteModal(taskId, taskName) {
+    document.getElementById('modal-task-name').textContent = taskName;
+    document.getElementById('complete-form').action = '/tasks/' + taskId + '/complete';
+    document.getElementById('complete-modal').classList.remove('hidden');
+    document.getElementById('repo_link').value = '';
+    document.getElementById('repo_link').focus();
+}
+function closeCompleteModal() {
+    document.getElementById('complete-modal').classList.add('hidden');
+}
+</script>
+@endpush
+
+@push('modals')
+{{-- Modal Tandai Selesai --}}
+<div id="complete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-1">Tandai Tugas Selesai</h3>
+        <p class="text-sm text-gray-500 mb-4">
+            Tugas: <span id="modal-task-name" class="font-semibold text-gray-700"></span>
+        </p>
+
+        <form id="complete-form" method="POST" action="">
+            @csrf
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Link Repository / Bukti Kerja <span class="text-red-500">*</span>
+                </label>
+                <input type="url" name="repo_link" id="repo_link"
+                    placeholder="https://github.com/username/repo"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
+                    required>
+                <p class="text-xs text-gray-400 mt-1">Wajib diisi. Masukkan URL repo atau link bukti kerja.</p>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="submit"
+                    class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-green-600 hover:bg-green-700">
+                    Konfirmasi Selesai
+                </button>
+                <button type="button" onclick="closeCompleteModal()"
+                    class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200">
+                    Batal
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endpush

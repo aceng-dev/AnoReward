@@ -14,9 +14,7 @@ return new class extends Migration
             $table->string('project_name');
             $table->text('description')->nullable();
             $table->enum('status', ['planning', 'ongoing', 'completed'])->default('planning');
-            
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
-            
             $table->timestamps();
         });
     }

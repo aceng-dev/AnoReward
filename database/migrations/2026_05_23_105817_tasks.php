@@ -16,15 +16,18 @@ return new class extends Migration
             $table->foreignId('developer_id')->nullable()->constrained('users')->onDelete('set null');
             
             // Kolom ini aman: Jika project dihapus, task otomatis ikut terhapus (cascade)
+           
             $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
             
             $table->string('task_name');
             $table->enum('status', ['todo', 'inprogress', 'done', 'approved'])->default('todo');
+            $table->enum('difficulty', ['Low', 'Medium', 'High'])->default('Medium');
             $table->text('description')->nullable();
             $table->date('due_date')->nullable();
             $table->dateTime('completed_at')->nullable();
             $table->integer('pm_rating')->default(0);
             $table->integer('calculated_score')->default(0);
+            $table->string('repo_link')->nullable();
             $table->text('ai_review')->nullable();            
             $table->integer('ai_suggested_rating')->nullable();  
             $table->timestamps();

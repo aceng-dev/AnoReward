@@ -3,165 +3,202 @@
 namespace App\Http\Controllers;
 
 use App\Models\SalaryRecommendation;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class RewardController extends Controller
 {
     /**
-     * Menampilkan daftar reward/bonus untuk developer
+     * Daftar reward:
+     * - developer: hanya miliknya sendiri
+     * - admin/manager: semua rekomendasi (Reward Decision Center per FR-18)
      */
     public function index()
     {
-        $developer = auth()->user();
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
 
-        $rewards = SalaryRecommendation::where('developer_id', $developer->id)
+        if ($user->role === 'developer') {
+            $rewards = SalaryRecommendation::where('developer_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $totalApproved   = $rewards->where('recommendation_status', 'approved')->sum('proposed_bonus');
+            $pendingApproval = $rewards->where('recommendation_status', 'pending')->sum('proposed_bonus');
+
+            return view('rewards.index', [
+                'rewards'         => $rewards,
+                'totalApproved'   => $totalApproved,
+                'pendingApproval' => $pendingApproval,
+                'totalRewards'    => $totalApproved + $pendingApproval,
+            ]);
+        }
+
+        // admin / manager: tampilkan semua + developer info
+        $rewards = SalaryRecommendation::with('developer')
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $totalApproved = $rewards->where('status', 'approved')->sum('amount');
-        $pendingApproval = $rewards->where('status', 'pending')->sum('amount');
+        $totalApproved   = $rewards->where('recommendation_status', 'approved')->sum('proposed_bonus');
+        $pendingApproval = $rewards->where('recommendation_status', 'pending')->sum('proposed_bonus');
 
         return view('rewards.index', [
-            'rewards' => $rewards,
-            'totalApproved' => $totalApproved,
+            'rewards'         => $rewards,
+            'totalApproved'   => $totalApproved,
             'pendingApproval' => $pendingApproval,
-            'totalRewards' => $totalApproved + $pendingApproval,
+            'totalRewards'    => $totalApproved + $pendingApproval,
         ]);
     }
 
     /**
-     * Menampilkan detail reward
+     * Detail reward.
      */
     public function show(SalaryRecommendation $reward)
     {
-        // Cek apakah user adalah pemilik reward atau admin/manager
-        if ($reward->developer_id !== auth()->id() && auth()->user()->role === 'developer') {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        if ($reward->developer_id !== $user->id && $user->role === 'developer') {
             abort(403, 'Unauthorized');
         }
 
         return view('rewards.show', [
-            'reward' => $reward,
+            'reward'    => $reward,
             'developer' => $reward->developer,
-            'manager' => $reward->manager,
-            'task' => $reward->task,
+            'manager'   => $reward->manager,
         ]);
     }
 
     /**
-     * Create reward (untuk manager/admin)
+     * Form buat reward manual (manager/admin).
      */
     public function create()
     {
-        // Hanya manager dan admin yang bisa membuat reward
-        if (auth()->user()->role === 'developer') {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        if ($user->role === 'developer') {
             abort(403, 'Unauthorized');
         }
 
-        return view('rewards.create');
+        $developers = User::where('role', 'developer')->get();
+
+        return view('rewards.create', compact('developers'));
     }
 
     /**
-     * Store reward (untuk manager/admin)
+     * Simpan reward manual (manager/admin).
      */
     public function store(Request $request)
     {
-        if (auth()->user()->role === 'developer') {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        if ($user->role === 'developer') {
             abort(403, 'Unauthorized');
         }
 
         $validated = $request->validate([
             'developer_id' => 'required|exists:users,id',
-            'task_id' => 'nullable|exists:tasks,id',
-            'amount' => 'required|numeric|min:0',
-            'reason' => 'required|string|max:500',
+            'amount'       => 'required|numeric|min:0',
+            'reason'       => 'required|string|max:500',
             'period_month' => 'required|date',
         ]);
 
         $reward = SalaryRecommendation::create([
-            'developer_id' => $validated['developer_id'],
-            'average_score' => 0,
-            'proposed_bonus' => $validated['amount'],
-            'manager_comments' => $validated['reason'],
-            'evaluated_at' => $validated['period_month'],
+            'developer_id'          => $validated['developer_id'],
+            'average_score'         => 0,
+            'proposed_bonus'        => $validated['amount'],
+            'manager_comments'      => $validated['reason'],
+            'evaluated_at'          => $validated['period_month'],
             'recommendation_status' => 'pending',
         ]);
 
-        $redirectRoute = auth()->user()->role === 'admin' ? 'admin.rewards.show' : 'manager.rewards.show';
+        $redirectRoute = $user->role === 'admin'
+            ? 'admin.rewards.show'
+            : 'manager.rewards.show';
 
         return redirect()->route($redirectRoute, $reward)
-            ->with('success', 'Reward berhasil dibuat dan menunggu approval');
+            ->with('success', 'Reward berhasil dibuat dan menunggu approval.');
     }
 
     /**
-     * Approve reward (hanya admin)
+     * Approve reward (hanya admin).
      */
     public function approve(SalaryRecommendation $reward)
     {
-        if (auth()->user()->role !== 'admin') {
-            abort(403, 'Hanya admin yang bisa approve reward');
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        if ($user->role !== 'admin') {
+            abort(403, 'Hanya admin yang bisa approve reward.');
         }
 
-        if ($reward->status !== 'pending') {
-            return redirect()->back()->with('error', 'Reward ini sudah di-process');
+        if ($reward->recommendation_status !== 'pending') {
+            return redirect()->back()->with('error', 'Reward ini sudah diproses.');
         }
 
         $reward->update([
             'recommendation_status' => 'approved',
-            'evaluated_at' => Carbon::now(),
+            'evaluated_at'          => Carbon::now(),
         ]);
 
-        return redirect()->back()->with('success', 'Reward berhasil diapprove');
+        // Tambahkan bonus ke gaji developer
+        $developer = User::find($reward->developer_id);
+        if ($developer && $reward->proposed_bonus) {
+            $developer->increment('current_salary', $reward->proposed_bonus);
+        }
+
+        return redirect()->back()->with('success', 'Reward berhasil diapprove.');
     }
 
     /**
-     * Reject reward (hanya admin)
+     * Reject reward (hanya admin).
      */
     public function reject(SalaryRecommendation $reward, Request $request)
     {
-        if (auth()->user()->role !== 'admin') {
-            abort(403, 'Hanya admin yang bisa reject reward');
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        if ($user->role !== 'admin') {
+            abort(403, 'Hanya admin yang bisa reject reward.');
         }
 
-        if ($reward->status !== 'pending') {
-            return redirect()->back()->with('error', 'Reward ini sudah di-process');
+        if ($reward->recommendation_status !== 'pending') {
+            return redirect()->back()->with('error', 'Reward ini sudah diproses.');
         }
-
-        $validated = $request->validate([
-            'rejection_reason' => 'required|string|max:500',
-        ]);
 
         $reward->update([
             'recommendation_status' => 'rejected',
-            'manager_comments' => $validated['rejection_reason'],
-            'evaluated_at' => Carbon::now(),
+            'manager_comments'      => $request->input('rejection_reason', 'Ditolak oleh admin.'),
+            'evaluated_at'          => Carbon::now(),
         ]);
 
-        return redirect()->back()->with('success', 'Reward berhasil ditolak');
+        return redirect()->back()->with('success', 'Reward berhasil ditolak.');
     }
 
     /**
-     * Menampilkan statistik reward
+     * Statistik reward.
      */
     public function statistics()
     {
+        /** @var \App\Models\User $user */
         $user = auth()->user();
 
-        if ($user->role === 'developer') {
-            // Stats untuk developer
-            $rewards = SalaryRecommendation::where('developer_id', $user->id)->get();
-        } else {
-            // Stats untuk manager/admin (all developers)
-            $rewards = SalaryRecommendation::all();
-        }
+        $rewards = $user->role === 'developer'
+            ? SalaryRecommendation::where('developer_id', $user->id)->get()
+            : SalaryRecommendation::all();
 
         $stats = [
-            'total_distributed' => $rewards->where('status', 'approved')->sum('amount'),
-            'total_pending' => $rewards->where('status', 'pending')->sum('amount'),
-            'total_rejected' => $rewards->where('status', 'rejected')->count(),
-            'average_reward' => $rewards->where('status', 'approved')->avg('amount'),
-            'monthly_breakdown' => $rewards->groupBy('period_month')->map(fn($group) => [
-                'total' => $group->where('status', 'approved')->sum('amount'),
+            'total_distributed' => $rewards->where('recommendation_status', 'approved')->sum('proposed_bonus'),
+            'total_pending'     => $rewards->where('recommendation_status', 'pending')->sum('proposed_bonus'),
+            'total_rejected'    => $rewards->where('recommendation_status', 'rejected')->count(),
+            'average_reward'    => $rewards->where('recommendation_status', 'approved')->avg('proposed_bonus') ?? 0,
+            'monthly_breakdown' => $rewards->groupBy(function ($r) {
+                return optional($r->evaluated_at)->format('Y-m') ?? $r->created_at->format('Y-m');
+            })->map(fn ($group) => [
+                'total' => $group->where('recommendation_status', 'approved')->sum('proposed_bonus'),
                 'count' => $group->count(),
             ]),
         ];
