@@ -7,10 +7,14 @@
             <x-auth-session-status class="mb-4" :status="session('status')" />
 
             <!-- Header Section -->
-            <div class="mb-8 text-center">
-                <h1 class="text-3xl font-bold tracking-tight text-[#1b1b18]">Welcome back</h1>
-                <p class="mt-2 text-sm text-[#4a4a4a]">Log in to access your dashboard and rewards.</p>
-            </div>
+                <div class="mb-8 text-center">
+                    <div class="flex justify-center mb-4">
+                        <img src="{{ asset('images/logo.png') }}" alt="AnoReward Logo" class="h-16 w-auto object-contain">
+                    </div>
+
+                    <h1 class="text-3xl font-bold tracking-tight text-[#1b1b18]">Welcome back</h1>
+                    <p class="mt-2 text-sm text-[#4a4a4a]">Log in to access your dashboard and rewards.</p>
+                </div>
 
             <!-- Form Section -->
             <form method="POST" action="{{ route('login') }}" class="space-y-5">

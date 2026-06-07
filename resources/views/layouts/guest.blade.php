@@ -16,11 +16,6 @@
     </head>
     <body class="font-sans text-[#1b1b18] antialiased bg-[#F6F5F4]">
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-[#F6F5F4]">
-            <div>
-                <a href="/">
-                    <x-application-logo class="w-20 h-20 fill-current text-[#780000]" />
-                </a>
-            </div>
 
             <div class="w-full sm:max-w-md mt-6 px-6 py-6 bg-white border border-[#7800001a] shadow-xl overflow-hidden sm:rounded-3xl">
                 {{ $slot }}
